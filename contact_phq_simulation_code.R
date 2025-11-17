@@ -49,10 +49,10 @@ pcon <- ifelse(race == 0,
 race_eff <- ifelse(race == 0, 0.4, 0.2)
 
 # Extra depression effect for police stop
-police_eff <- ifelse(pcon == 1, 0.9, 0)
+police_eff <- ifelse(pcon == 1, 0.9, 0.4)
 
 # Stronger police-stop effect among BIPOC
-interaction_eff <- ifelse(race == 0 & pcon == 1, 0.6, 0)
+interaction_eff <- ifelse(race == 0 & pcon == 1, 0.6, 0.3)
 
 # latent (continuous) depression severity
 latent_dep <- 0.5 + race_eff + police_eff + interaction_eff + rnorm(N, 0, 0.6)
@@ -82,6 +82,19 @@ sim_data <- data.frame(
   pcon = factor(pcon, levels=c(0,1), labels=c("No","Yes")),
   phq_1, phq_2, phq_3, phq_4, phq_5, phq_6, phq_7, phq_8, phq_9
 )
+
+#Introducing missingness at random
+sim_data <- missMethods::delete_MCAR(sim_data, .02, "phq_1")
+sim_data <- missMethods::delete_MCAR(sim_data, .03, "phq_2")
+sim_data <- missMethods::delete_MCAR(sim_data, .04, "phq_3")
+sim_data <- missMethods::delete_MCAR(sim_data, .03, "phq_4")
+sim_data <- missMethods::delete_MCAR(sim_data, .07, "phq_5")
+sim_data <- missMethods::delete_MCAR(sim_data, .09, "phq_6")
+sim_data <- missMethods::delete_MCAR(sim_data, .02, "phq_7")
+sim_data <- missMethods::delete_MCAR(sim_data, .09, "phq_8")
+sim_data <- missMethods::delete_MCAR(sim_data, .11, "phq_9")
+sim_data <- missMethods::delete_MCAR(sim_data, .09, "pcon")
+
 
 # PHQ-9 total score
 sim_data$phq_total <- rowSums(sim_data[, grep("phq_", names(sim_data))])
