@@ -1,5 +1,36 @@
-set.seed(123)
+#############################################
+#### Simulating Police Contact & Depressive Symptoms ####
+#############################################
+### Workspace setup ####
 
+
+#library(groundhog)
+#groundhog.library(dplyr, "2025-11-15")
+#groundhog.library(faux, "2025-11-15")
+#groundhog.library(summarytools, "2025-11-15")
+#groundhog.library(missMethods, "2025-11-15")
+
+library(dplyr)
+library(groundhog)
+library(faux)
+library(summarytools)
+library(missMethods)
+
+
+sessionInfo()
+
+# R version 4.5.1
+# groundhog_3.2.3     
+# dplyr_1.1.4 
+# faux_1.2.3   
+# summarytools_1.1.3
+# missMethods_0.4.0
+
+#setting seed
+
+
+set.seed(123)
+#sample size
 N <- 500
 
 # participant id
