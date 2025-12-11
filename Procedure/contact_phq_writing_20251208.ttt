@@ -1,0 +1,52 @@
+\begin{table*}[hbt]
+\ifnextchar[{\eatarg}{}
+[tbp]
+
+\begin{center}
+\begin{threeparttable}
+
+\caption{\label{tab:unnamed-chunk-1}Descriptives Statistics for PHQ scale by police contact}
+
+\begin{tabular}{lll}
+\toprule
+Police Contact & Mean & SD\\
+\midrule
+No & 2.87 & 0.75\\
+Yes & 3.69 & 0.42\\
+NA & 3.37 & 0.98\\
+\bottomrule
+\addlinespace
+\end{tabular}
+
+\begin{tablenotes}[para]
+\normalsize{\textit{Note.} The groups statistically differd}
+\end{tablenotes}
+
+\end{threeparttable}
+\end{center}
+
+\end{table*}
+\begin{table*}[hbt]
+\ifnextchar[{\eatarg}{}
+[tbp]
+
+\begin{center}
+\begin{threeparttable}
+
+\caption{\label{tab:unnamed-chunk-2}Model 2: Moderation by Race}
+
+\begin{tabular}{lllll}
+\toprule
+term & \multicolumn{1}{c}{estimate} & \multicolumn{1}{c}{std.error} & \multicolumn{1}{c}{statistic} & \multicolumn{1}{c}{p.value}\\
+\midrule
+Intercept (BIPOC, No Police Contact) & 2.94 & 0.05 & 58.94 & 0.00\\
+Police Contact (Yes vs. No) & 0.80 & 0.08 & 9.90 & 0.00\\
+Race (White vs. BIPOC) & -0.15 & 0.07 & -2.04 & 0.04\\
+Police Contact × Race & -0.06 & 0.15 & -0.38 & 0.70\\
+\bottomrule
+\end{tabular}
+
+\end{threeparttable}
+\end{center}
+
+\end{table*}
