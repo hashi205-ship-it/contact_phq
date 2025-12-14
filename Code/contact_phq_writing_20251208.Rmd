@@ -1,0 +1,314 @@
+---
+title             : "Police stop and depressive symptoms: Examining moderating role of race"
+shorttitle        : "Police stop and depressive symptoms"
+
+author: 
+  - name          : "Mohammad Hahsim"
+    affiliation   : "1"
+    corresponding : yes
+    address       : "Department of Psychology"
+    email         : "hashi205@umn.edu"
+    role: 
+      - "Conceptualization"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+
+affiliation:
+  - id            : "1"
+    institution   : "University of Minnesota, Twin Cities"
+
+authornote: |
+  A sample project for the course of Graduate Seminar in Psychology, led by Dr. Moin Syed.
+  I also want to extend my sincere gratitude to Dr. Syed for his outstanding teaching this semester. When I first arrived here, the transition was quite difficult for me due to many factors, including hesitation and language barriers. I am deeply thankful for his patience, understanding, and the supportive environment he created. I learned so much from this course, and I can say without hesitation that it was the best class of my first semester.
+
+abstract: |
+  Police stops are increasingly recognized as psychologically consequential events that may elevate depressive symptoms, particularly among marginalized groups. The present study used a simulated dataset of 500 participants to examine whether experiencing a police stop was associated with higher depressive symptoms, and whether this association was moderated by race. Participants ranged from early to late adolescence (M = 27.52, SD = 0.42) and were demographically diverse: 43.40% identified as female, 58.80% identified as BIPOC, and 27% reported negative police contact. Depressive symptoms were assessed using the PHQ-9. Analyses were conducted in R and proceeded in two steps. First, a Welch two-sample t-test showed that individuals who had been stopped by the police reported significantly higher depressive symptoms (M = 3.69) than those who had not (M = 2.87), t(445.99) = –15.54, p < .001, 95% CI [–0.93, –0.72]. Second, a linear regression model tested whether race moderated this association. The model explained a significant proportion of variance in depressive symptoms (R² = .25), and both police contact (B = 0.80, p < .001) and race (B = –0.15, p = .042) showed significant main effects. However, the police contact × race interaction was not significant (B = –0.06, p = .703), indicating that the psychological impact of police stops did not differ meaningfully between White and BIPOC participants. Together, these findings suggest that police contact is strongly associated with elevated depressive symptoms, but this association appears consistent across racial groups.
+  
+keywords          : "police stop; psychopathology; black; race; legal system expsoure"
+wordcount         : "1442"
+
+bibliography: ["../Archives/references.bib", "../Archives/r-references.bib"]
+
+floatsintext      : no
+linenumbers       : yes
+draft             : no
+mask              : no
+
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+
+classoption       : "man"
+output            : papaja::apa6_pdf
+---
+
+Police interactions, especially involuntary or intrusive stops, are increasingly recognized as significant stressors that may undermine mental health [@devylder2020]. A growing body of research shows that being stopped by the police can evoke fear, threat, and feelings of injustice[@jacksondavisBlackFirstGenerationUnderresourced2022], all of which may contribute to elevated depressive symptoms [@harris2022] . However, the psychological impact of police contact is not experienced uniformly across communities[@jacksondavisBlackFirstGenerationUnderresourced2022]. Race remains a central factor shaping how individuals perceive, interpret, and internalize police encounters[@harrisPoliceViolenceExposure2025; @jackson2025]. For many racial and ethnic minority groups, especially Black and Latino communities[@briere2024], police stops occur within a broader historical and social context marked by discrimination and disproportionate surveillance[@deltoro2019]. The present study examines the association between police stops and depressive symptoms and investigates whether this relationship differs by race. Understanding racial variation in the mental health consequences of police contact is essential for clarifying risk pathways and identifying populations most adversely affected[@devylder2022]. This work contributes to ongoing discussions on policing, public health, and racial inequality by evaluating whether race moderates the psychological burden of police stops.
+
+Based on previous research, the present study aims to study the following questions and hypotheses:
+
+RQ1: What is the relationship between experiencing police stop and current depressive symptoms?
+
+H1: Individuals who report having been stopped by the police will exhibit higher levels of depressive symptoms compared to those who have not.
+
+RQ2: Does race moderate the relationship between police stops and depressive symptoms?
+
+H2: The positive relationship between police stops and depressive symptoms will be significantly stronger for individuals identifying as BIPOC compared to those identifying as White.
+
+
+```{r setup, include=FALSE}
+library(emmeans)
+library(groundhog)
+library(dplyr)
+library(psych)
+library(labelled)
+library(ggplot2)
+library(tinylabels)
+library(papaja)
+library(knitr)
+library(broom)
+library(janitor)
+```
+
+# Methods
+
+The current study was NOT preregistered. Data and code are available at <https://github.com/hashi205-ship-it/contact_phq>. The study uses a simulated dataset generated for teaching and learning purposes.
+
+## Participants
+
+```{r analysis-preferences, include=FALSE}
+# Seed for random number generation
+set.seed(1999)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+```{r data load, include=FALSE}
+#data loading
+data <- read.csv("../Data/contact_phq_simulated_2025-12-08.csv")
+```
+
+```{r load-data and total add, include=FALSE}
+#Adding PHQ row mean
+data <- data %>%
+  clean_names() %>%
+  mutate(
+    phq_mean = rowMeans(select(., phq_1:phq_9), na.rm = TRUE)
+  )
+```
+
+```{r demographics, include=FALSE}
+# Descriptive stats
+
+age_mean <- mean(data$age)
+age_sd <- sd(data$age)
+contact_percent <- (nrow(filter(data, pcon == "Yes"))/(nrow(data)) * 100)
+immigrant_percent <- (nrow(filter(data, immigrant == "immigrant"))/(nrow(data)) * 100)
+bipoc_percent <- (nrow(filter(data, race == "BIPOC"))/(nrow(data)) * 100)
+female_percent <- (nrow(filter(data, sex == "Female"))/(nrow(data)) * 100)
+```
+
+The present study uses a simulated dataset comprising `r nrow(data)` participants. Participants ranged in age from early to late adolescence, with a mean age of `r round(age_mean, digits = 2)` years (SD = `r round(age_sd, digits = 2)`). The sample was demographically diverse. Approximately `r round(female_percent, digits = 2)`% of the sample identified as female, and `r round(bipoc_percent, digits = 2)`% identified as belonging to a BIPOC racial or ethnic group. `r round(contact_percent, digits = 2)`% particapants had negative police contact. In addition, `r round(immigrant_percent, digits = 2)`% of participants were immigrants and rest were non-immigrants.
+
+## Measures
+
+## Police Contact
+
+Participants self reported whether they had been stopped by the police in yes or no responses. This direct question approach has previously been used in the literature[@jackson2025a].
+
+## Depressive Symptom
+
+```{r alpha, include=FALSE}
+#alpha of PHQ
+alpha_phq <-  psych::alpha(dplyr::select(data, "phq_1", "phq_2", "phq_3", "phq_4", "phq_5", "phq_6", "phq_7", "phq_8", "phq_9"))
+
+#final alpha
+phq_alpha <- alpha_phq$total$std.alpha
+```
+
+Participants completed the Patient Health Questionnaire–9 [@kroenke2001], a widely used and well-validated self-report measure of depressive symptomatology. The PHQ-9 assesses the frequency of nine DSM-based symptoms of major depression experienced over the past two weeks (e.g., anhedonia, depressed mood, sleep disturbance, fatigue, and difficulty concentrating). Items are rated on a 4-point Likert scale ranging from 0 (not at all) to 3 (nearly every day), with total scores reflecting overall severity of depressive symptoms. Higher scores indicate greater depressive symptom severity, with established clinical cutoffs corresponding to mild, moderate, moderately severe, and severe depression. In the present sample, the PHQ-9 demonstrated excellent internal consistency (Cronbach's alpha = `r round(phq_alpha, digits = 2)`), consistent with prior research supporting its reliability and construct validity.
+
+## Procedure
+
+All data were simulated to approximate realistic distributions. Participants hypothetically reported demographics, police contact, and depressive symptoms.
+
+## Data analysis
+
+We used `r cite_r("r-references.bib")` for all our analyses.
+
+All analyses were performed on the simulated dataset after computing PHQ-9 total scores by summing the nine individual symptom items. Prior to analysis, categorical predictors were coded as factors with meaningful reference categories (i.e., No for police contact and BIPOC for race) to facilitate interpretation of regression coefficients.
+
+Analyses proceeded in two steps. First, to evaluate Hypothesis first, which predicted that individuals who had been stopped by the police would report higher depressive symptoms than those who had not, we conducted a Welch two-sample t-test comparing PHQ-9 total scores across police contact groups (“Yes” vs. “No”). This test allowed for unequal variances between groups and provided an estimate of whether depressive symptom severity differed as a function of police contact.
+
+Second, to evaluate second hypothesis, which predicted that race would moderate the association between police contact and depressive symptoms, we estimated a linear regression model including police contact, race, and their interaction term. This moderation model tested whether the effect of police contact on depressive symptoms differed between White and BIPOC participants. Model fit was evaluated using R² and F-tests, and significance of individual predictors was assessed using t-tests with associated confidence intervals. To aid interpretation of the interaction, estimated marginal means were computed using the emmeans package, and a corresponding moderation plot was produced to visualize predicted depressive symptoms across police contact status for each racial group.
+
+All statistical tests used a significance threshold of $\alpha$ = .05 (two-tailed), and effect sizes and predicted values were reported where relevant. Confidence intervals were computed using model-based standard errors.
+
+```{r phq descriptives, include=FALSE}
+# PHQ descriptives
+mean_phq <- mean(data$phq_mean, na.rm = TRUE)
+sd_phq <- sd(data$phq_mean, na.rm = TRUE)
+#PHQ mean for police contact participants
+#Contact
+mean_phq_yes <- data %>%
+  filter(pcon == "Yes") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+
+# No contact
+mean_phq_no <- data %>%
+  filter(pcon == "No") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+
+#PHQ mean for race
+#BIPOC
+mean_phq_bipoc <- data %>%
+  filter(race == "BIPOC") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+#White
+mean_phq_white <- data %>%
+  filter(race == "White") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+
+#PHQ mean for immigrants and non...
+
+mean_phq_immig <- data %>%
+  filter(immigrant == "immigrant") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+
+mean_phq_nonimmig <- data %>%
+  filter(immigrant == "non-immigrant") %>%
+  summarize(mean_phq = mean(phq_mean, na.rm = TRUE))
+```
+
+# Results
+
+```{r analysis, include=FALSE}
+# First hypothesis, T test
+t_test_result <- t.test(phq_mean ~ pcon, data = data) 
+# race moderation
+interaction_model <- lm(phq_mean ~ pcon * race, data = data)
+```
+
+## Descriptive Statistics
+
+Descriptive analyses were conducted to characterize overall depressive symptom severity and patterns across key demographic and experiential groups. The mean depressive symptom score for the full sample was `r round(mean_phq, 2)` (SD = `r round(sd_phq, 2)`), indicating generally moderate levels of depressive symptoms in this simulated dataset. Depressive symptoms differed meaningfully across participants based on police contact. Those who reported being stopped by the police had a notably higher mean PHQ score (`r round(mean_phq_yes, 2)`), whereas individuals with no history of police stops showed a substantially lower average score (`r round(mean_phq_no, 2)`). Differences also emerged at the descriptive level across racial groups. BIPOC participants reported a higher mean level of depressive symptoms (`r round(mean_phq_bipoc, 2)`) compared with White participants (`r round(mean_phq_white, 2)`). Finally, depressive symptoms varied modestly by immigrant status. Immigrant participants had an average PHQ-9 score of `r round(mean_phq_immig, 2)`, slightly higher than the mean for non-immigrant participants `(r round(mean_phq_nonimmig, 2)`).
+
+## Inferential Statistics
+
+### Group Differences in Depressive Symptoms by Police Contact
+
+
+To test the hypothesis that individuals who had experienced a police stop would report higher depressive symptoms than those who had not, a Welch two-sample t-test was conducted. The analysis indicated a statistically significant difference in depressive symptoms between 
+groups, *t*(`r round(t_test_result$statistic, 2)`) = `r round(t_test_result$statistic, 2)`, 
+df = `r round(t_test_result$parameter, 2)`, *p* = `r signif(t_test_result$p.value, 3)`. The estimated mean difference was `r round(t_test_result$estimate[1] - t_test_result$estimate[2], 2)`, 
+with a 95% confidence interval ranging from `r round(t_test_result$conf.int[1], 2)` to 
+`r round(t_test_result$conf.int[2], 2)`. These results indicate that individuals who reported police contact exhibited significantly 
+higher depressive symptoms on average, supporting the hypothesis that police encounters are associated with greater psychological distress.
+
+
+## Moderation by Race
+
+To examine whether race moderated the association between police contact and depressive symptoms, a linear regression model was estimated including the main effects of police contact and race, as well as their interaction. The model explained a significant proportion 
+of variance in depressive symptoms, *R*² = `r round(summary(interaction_model)$r.squared, 2)`, 
+adjusted *R*² = `r round(summary(interaction_model)$adj.r.squared, 2)`, 
+*F*(`r summary(interaction_model)$fstatistic[2]`, 
+`r summary(interaction_model)$fstatistic[3]`) = 
+`r round(summary(interaction_model)$fstatistic[1], 2)`, 
+*p* = `r signif(pf(summary(interaction_model)$fstatistic[1],
+                   summary(interaction_model)$fstatistic[2],
+                   summary(interaction_model)$fstatistic[3],
+                   lower.tail = FALSE), 3)`.
+
+For the reference group (BIPOC individuals with no police contact), the estimated mean PHQ score was `r round(coef(interaction_model)[1], 2)`.
+
+A significant main effect of police contact emerged: BIPOC individuals who had been stopped by police scored, on average, 
+`r round(coef(interaction_model)[2], 2)` points higher on depressive symptoms than those who had not been stopped (*SE* = `r round(summary(interaction_model)$coef[2,2], 2)`, 
+*t* = `r round(summary(interaction_model)$coef[2,3], 2)`, 
+*p* = `r signif(summary(interaction_model)$coef[2,4], 3)`). 
+
+A significant main effect of race emerged: White participants reported slightly lower depressive symptoms than BIPOC participants when they had not been stopped by the police, 
+*B* = `r round(coef(interaction_model)[3], 2)`, 
+*SE* = `r round(summary(interaction_model)$coef[3,2], 2)`, 
+*t* = `r round(summary(interaction_model)$coef[3,3], 2)`, 
+*p* = `r signif(summary(interaction_model)$coef[3,4], 3)`. Although the effect size was small, this indicates that race was associated with depressive symptoms in the absence of police contact.
+
+Critically, the interaction between police contact and race was not significant, 
+*B* = `r round(coef(interaction_model)[4], 2)`, 
+*SE* = `r round(summary(interaction_model)$coef[4,2], 2)`, 
+*t* = `r round(summary(interaction_model)$coef[4,3], 2)`, 
+*p* = `r signif(summary(interaction_model)$coef[4,4], 3)`. This indicates that the effect of police contact on depressive symptoms did not differ across racial groups. Although the descriptive interaction plot showed (Figure 1) slightly higher predicted scores for BIPOC participants following a police stop, this pattern was not statistically reliable.
+
+Overall, the results demonstrate that police contact is strongly associated with increased depressive symptoms, but this association does not vary by race in this dataset.
+
+
+```{r, include=TRUE}
+# Group the data by police contact and compute the mean and standard deviation of depressive symptoms
+pcon_phq_means <- data %>% dplyr::group_by(pcon) %>% 
+  dplyr::summarise(Mean = mean(phq_mean,  na.rm = TRUE), 
+            SD = sd(phq_mean,  na.rm = TRUE))
+#Create an APA-style table displaying descriptive statistics for Question 1
+apa_table(pcon_phq_means, 
+          caption = "Descriptives Statistics for PHQ scale by police contact",
+          col.names = c("Police Contact", "Mean", "SD"),
+          align = "l", digits = 2,
+          note = "The groups statistically differd")
+```
+
+```{r}
+#Create an APA-style table for moderation
+tab <- tidy(interaction_model)
+
+# Replacing term labels 
+tab$term <- recode(tab$term,
+                   `(Intercept)` = "Intercept (BIPOC, No Police Contact)",
+                   `pconYes` = "Police Contact (Yes vs. No)",
+                   `raceWhite` = "Race (White vs. BIPOC)",
+                   `pconYes:raceWhite` = "Police Contact × Race")
+# moderation table
+apa_table(
+  tab,
+  caption = "Model 2: Moderation by Race"
+)
+```
+
+```{r plot generation}
+# Obtain estimated marginal means (EMMs) from the interaction model. This computes predicted PHQ scores for each combination of police contact × race
+em <- emmeans(interaction_model, ~ pcon * race)
+# Convert the EMMs object to a data frame for easy plotting with ggplot2
+plot_data <- as.data.frame(em)
+
+# Create the moderation plot using ggplot2
+ggplot(plot_data, aes(x = pcon, y = emmean, 
+                      group = race, 
+                      color = race)) +
+  # Add points at each predicted value
+  geom_point(size = 3) +
+  # Draw lines connecting predicted values across police contact levels
+  geom_line(linewidth = 1.2) +
+  # Add error bars representing ±1 standard error around each predicted mean
+  geom_errorbar(aes(ymin = emmean - SE, ymax = emmean + SE),
+                width = 0.1, linewidth = 0.9) +
+  # Add axis labels, legend title, and plot title
+  labs(
+    x = "Police Contact (Yes/No)",
+    y = "Predicted Depressive Symptoms",
+    color = "Race",
+    title = "Moderation of Race"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    legend.position = "right"
+  )
+```
+
+**Figure 1: Moderation plot for Race**
+
+# Discussion
+
+No discussion section is written as we used simulated data.
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::
